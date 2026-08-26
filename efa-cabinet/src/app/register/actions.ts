@@ -1,0 +1,29 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export async function signUp(formData: FormData) {
+  const email = String(formData.get("email") || "");
+  const password = String(formData.get("password") || "");
+  const companyName = String(formData.get("company_name") || "");
+  const contactName = String(formData.get("contact_name") || "");
+
+  const supabase = createClient();
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { company_name: companyName, contact_name: contactName },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+    }
+  });
+
+  if (error) {
+    redirect(`/register?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Если в Supabase включено подтверждение email (по умолчанию — да),
+  // сессии ещё нет: отправляем клиента на страницу "проверьте почту".
+  redirect("/register/check-email");
+}
