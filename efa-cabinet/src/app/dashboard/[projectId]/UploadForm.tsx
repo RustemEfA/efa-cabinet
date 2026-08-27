@@ -4,6 +4,19 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function sanitizeFileName(name: string) {
+  const dotIndex = name.lastIndexOf(".");
+  const ext = dotIndex !== -1 ? name.slice(dotIndex) : "";
+  const base = dotIndex !== -1 ? name.slice(0, dotIndex) : name;
+  const safeBase =
+    base
+      .normalize("NFKD")
+      .replace(/[^\w-]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "file";
+  const safeExt = ext.replace(/[^a-zA-Z0-9.]+/g, "");
+  return `${safeBase}${safeExt}`;
+}
+
 export default function UploadForm({
   userId,
   projectId
@@ -28,8 +41,10 @@ export default function UploadForm({
     // Путь внутри бакета: <user_id>/<project_id>/<timestamp>_<filename>
     // Префикс user_id обязателен — на нём построены Storage-политики
     // (см. supabase/migrations/0002_storage.sql), без него запись
-    // отклонит RLS.
-    const path = `${userId}/${projectId}/${Date.now()}_${file.name}`;
+    // отклонит RLS. Имя файла очищается от кириллицы/пробелов, иначе
+    // Supabase Storage вернёт "Invalid key".
+    const safeName = sanitizeFileName(file.name);
+    const path = `${userId}/${projectId}/${Date.now()}_${safeName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("documents")
