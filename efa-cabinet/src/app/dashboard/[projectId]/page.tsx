@@ -2,15 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { statusLabel } from "@/lib/statusLabels";
-import UploadForm from "./UploadForm";
 import { submitScanRequest } from "./actions";
-
-function formatBytes(bytes: number | null) {
-  if (!bytes) return "";
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${kb.toFixed(0)} КБ`;
-  return `${(kb / 1024).toFixed(1)} МБ`;
-}
 
 export default async function ProjectPage({
   params
@@ -23,7 +15,7 @@ export default async function ProjectPage({
 
   const { data: project } = await supabase
     .from("projects")
-    .select("id, title, status, survey_token, created_at")
+    .select("id, title, status, created_at")
     .eq("id", params.projectId)
     .single();
 
@@ -37,32 +29,21 @@ export default async function ProjectPage({
     .limit(1)
     .maybeSingle();
 
-  const { data: documents } = await supabase
+  const { data: deliverables } = await supabase
     .from("documents")
-    .select("id, file_name, file_size, kind, storage_path, created_at")
+    .select("id, file_name, storage_path, created_at")
     .eq("project_id", project.id)
+    .eq("kind", "deliverable")
     .order("created_at", { ascending: false });
 
-  const regulations = (documents || []).filter((d) => d.kind === "regulation");
-  const deliverables = (documents || []).filter((d) => d.kind === "deliverable");
-
   // Подписанные ссылки на скачивание — бакет приватный, прямых URL нет.
-  const withSignedUrls = async (docs: typeof deliverables) => {
-    const result = [];
-    for (const doc of docs) {
-      const { data } = await supabase.storage
-        .from("documents")
-        .createSignedUrl(doc.storage_path, 60 * 60); // 1 час
-      result.push({ ...doc, url: data?.signedUrl || null });
-    }
-    return result;
-  };
-
-  const deliverablesWithUrls = await withSignedUrls(deliverables);
-
-  const surveyUrl = project.survey_token
-    ? `https://t.me/YOUR_BOT_USERNAME?start=${project.survey_token}`
-    : null;
+  const deliverablesWithUrls = [];
+  for (const doc of deliverables || []) {
+    const { data } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(doc.storage_path, 60 * 60); // 1 час
+    deliverablesWithUrls.push({ ...doc, url: data?.signedUrl || null });
+  }
 
   return (
     <>
@@ -144,39 +125,11 @@ export default async function ProjectPage({
         )}
       </div>
 
-      <h2 style={{ fontSize: 16, marginTop: 32 }}>Регламенты и исходные данные</h2>
-      <p className="lead" style={{ marginBottom: 12 }}>
-        Загрузите то, что у вас уже есть: штатное расписание, должностные инструкции, регламенты процессов.
-        Чем больше загружено, тем меньше вопросов останется в опросе сотрудников.
-      </p>
-      <UploadForm userId={user.id} projectId={project.id} />
-
-      {regulations.length === 0 ? (
-        <p className="empty">Файлов пока нет.</p>
-      ) : (
-        regulations.map((doc) => (
-          <div className="doc-row" key={doc.id}>
-            <span>{doc.file_name}</span>
-            <span className="doc-meta">{formatBytes(doc.file_size)}</span>
-          </div>
-        ))
-      )}
-
-      <h2 style={{ fontSize: 16, marginTop: 32 }}>Опрос сотрудников</h2>
-      {surveyUrl ? (
-        <p className="lead">
-          Ссылка для сотрудников: <a href={surveyUrl}>{surveyUrl}</a>
-        </p>
-      ) : (
-        <p className="empty">
-          Ссылка появится здесь после того, как мы обработаем загруженные регламенты
-          и подготовим вопросы под вашу компанию.
-        </p>
-      )}
-
       <h2 style={{ fontSize: 16, marginTop: 32 }}>Результат</h2>
       {deliverablesWithUrls.length === 0 ? (
-        <p className="empty">Готовые файлы появятся здесь после сборки бизнес-архитектуры.</p>
+        <p className="empty">
+          Здесь появится отчёт после того, как мы его подготовим. Мы сообщим вам, когда он будет готов.
+        </p>
       ) : (
         deliverablesWithUrls.map((doc) => (
           <div className="doc-row" key={doc.id}>
