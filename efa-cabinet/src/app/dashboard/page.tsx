@@ -69,11 +69,7 @@ export default async function DashboardPage() {
           <h2>Создайте проект</h2>
         </div>
         <p>Внутри проекта — работа с одной организацией, одним бизнесом.</p>
-        <form action={createProject}>
-          <label htmlFor="title-0">Название проекта</label>
-          <input type="text" id="title-0" name="title" placeholder="Например: ООО «Ромашка»" required />
-          <button className="btn" type="submit">Создать проект</button>
-        </form>
+        <a href="#create-project" className="btn">Создать проект</a>
       </div>
 
       <p className="roadmap-title">Дорожная карта</p>
@@ -209,7 +205,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="cta-heading">
+      <div className="cta-heading" id="create-project" style={{ scrollMarginTop: 24 }}>
         <div className="big">ИТАК, ПОГНАЛИ!</div>
         <div className="small">Создаём проект!</div>
       </div>
