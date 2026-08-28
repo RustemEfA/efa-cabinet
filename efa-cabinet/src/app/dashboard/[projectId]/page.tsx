@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { statusLabel } from "@/lib/statusLabels";
-import { submitScanRequest } from "./actions";
+import { submitScanRequest, submitInterviewRequest } from "./actions";
+
+const OFERTA_URL = "/legal/Oferta_i_Specifikatsiya_1_Shag2.pdf";
 
 export default async function ProjectPage({
   params
@@ -28,6 +30,22 @@ export default async function ProjectPage({
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  const { data: interviewRequest } = await supabase
+    .from("interview_requests")
+    .select("id, contact, roster_storage_path, comment, status, created_at")
+    .eq("project_id", project.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let rosterUrl: string | null = null;
+  if (interviewRequest?.roster_storage_path) {
+    const { data } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(interviewRequest.roster_storage_path, 60 * 60);
+    rosterUrl = data?.signedUrl || null;
+  }
 
   const { data: deliverables } = await supabase
     .from("documents")
@@ -125,9 +143,100 @@ export default async function ProjectPage({
         )}
       </div>
 
-      <p className="hint">
-        Не хотите ждать отчёт? <Link href="/dashboard#step-2" style={{ color: "var(--teal)" }}>Перейти к Шагу №2 — Интервью сотрудников →</Link>
-      </p>
+      <div className="step-card" id="step-2" style={{ scrollMarginTop: 24 }}>
+        <div className="step-head">
+          <div className="step-num">2</div>
+          <h2>Интервью сотрудников</h2>
+        </div>
+
+        {interviewRequest ? (
+          <>
+            <p>
+              Заявка получена {new Date(interviewRequest.created_at).toLocaleDateString("ru-RU")}.
+              Мы свяжемся с вами по указанному контакту, чтобы подтвердить детали, получить
+              штатное расписание (если не приложено) и запустить интервью сотрудников —
+              обычно это занимает около недели.
+            </p>
+            <div className="doc-row">
+              <span>Контакт для связи</span>
+              <span className="doc-meta">{interviewRequest.contact}</span>
+            </div>
+            <div className="doc-row">
+              <span>Штатное расписание</span>
+              {rosterUrl ? (
+                <a className="doc-meta" href={rosterUrl}>Скачать файл</a>
+              ) : (
+                <span className="doc-meta">не приложено</span>
+              )}
+            </div>
+            <div className="doc-row">
+              <span>Комментарий</span>
+              <span className="doc-meta">{interviewRequest.comment || "не указан"}</span>
+            </div>
+            <div className="doc-row">
+              <span>Условия</span>
+              <span className="doc-meta"><a href={OFERTA_URL} target="_blank" rel="noreferrer">Оферта и спецификация (PDF)</a></span>
+            </div>
+          </>
+        ) : (
+          <>
+            <p>
+              Следующий шаг — интервью сотрудников. На каждого сотрудника — 60–100 вопросов,
+              подготовленных под вашу компанию. Сотрудники проходят интервью в удобное для себя
+              время, без отрыва от работы.
+            </p>
+            <p>
+              Чтобы подготовить персональные вопросы, нам нужно штатное расписание организации.
+              Приложите его сейчас — это ускорит запуск; если под рукой нет, можно прислать позже,
+              я свяжусь с вами лично.
+            </p>
+
+            <form action={submitInterviewRequest}>
+              <input type="hidden" name="project_id" value={project.id} />
+
+              <label htmlFor="interview-contact">Контакт для связи (телефон или Telegram)</label>
+              <input type="text" id="interview-contact" name="interview-contact" placeholder="+7 900 000-00-00 или @username" required />
+
+              <label htmlFor="interview-roster">Штатное расписание (PDF, DOCX, XLSX)</label>
+              <input type="file" id="interview-roster" name="interview-roster" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+
+              <label htmlFor="interview-comment">Комментарий (необязательно)</label>
+              <textarea
+                id="interview-comment"
+                name="interview-comment"
+                placeholder="Что-то, что нам стоит знать заранее: структура отделов, особенности, пожелания по срокам"
+              />
+
+              <div className="step-meta">
+                <span className="pill">
+                  <b>Стоимость:</b>&nbsp;10 000 ₽ — независимо от количества сотрудников
+                </span>
+                <span className="pill muted">
+                  <b>Длительность:</b>&nbsp;~1 неделя
+                </span>
+              </div>
+
+              <p style={{ marginTop: 14, fontSize: 12.5 }}>
+                <a href={OFERTA_URL} target="_blank" rel="noreferrer" className="btn secondary" style={{ marginTop: 0, padding: "6px 12px", fontSize: 12 }}>
+                  Оферта и спецификация (PDF)
+                </a>
+              </p>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 14, fontSize: 12.5, color: "var(--muted)" }}>
+                <input type="checkbox" name="interview-offer" required style={{ width: "auto", marginTop: 2 }} />
+                <span>Принимаю условия публичной оферты и спецификации к Шагу 2</span>
+              </label>
+
+              <button className="btn" type="submit" style={{ marginTop: 16 }}>
+                Начать Шаг 2
+              </button>
+            </form>
+            <p className="hint">
+              После заявки я свяжусь с вами по указанному контакту, чтобы подтвердить детали и
+              получить штатное расписание (если не приложено), и запустить интервью.
+            </p>
+          </>
+        )}
+      </div>
 
       <h2 style={{ fontSize: 16, marginTop: 32 }}>Результат</h2>
       {deliverablesWithUrls.length === 0 ? (
