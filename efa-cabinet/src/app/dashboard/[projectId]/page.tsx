@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { statusLabel } from "@/lib/statusLabels";
 import { submitScanRequest, submitInterviewRequest } from "./actions";
+import { SCAN_PRICE, INTERVIEW_PRICE } from "@/lib/pricing";
 
 const OFERTA_URL = "/legal/Oferta_i_Specifikatsiya_1_Shag2.pdf";
 
@@ -22,6 +23,16 @@ export default async function ProjectPage({
     .single();
 
   if (!project) notFound();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("partner_discount_rate")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const discountRate = profile?.partner_discount_rate || 0;
+  const scanPrice = discountRate ? Math.round(SCAN_PRICE * (1 - discountRate)) : SCAN_PRICE;
+  const interviewPrice = discountRate ? Math.round(INTERVIEW_PRICE * (1 - discountRate)) : INTERVIEW_PRICE;
 
   const { data: scanRequest } = await supabase
     .from("scan_requests")
@@ -82,7 +93,7 @@ export default async function ProjectPage({
           <>
             <p>
               Заявка получена {new Date(scanRequest.created_at).toLocaleDateString("ru-RU")}.
-              Мы свяжемся с вами, чтобы принять оплату 990 ₽ и подготовить отчёт — обычно
+              Мы свяжемся с вами, чтобы принять оплату {scanPrice} ₽ и подготовить отчёт — обычно
               это занимает до 2 дней.
             </p>
             <div className="doc-row">
@@ -124,7 +135,15 @@ export default async function ProjectPage({
 
               <div className="step-meta">
                 <span className="pill">
-                  <b>Стоимость:</b>&nbsp;990 ₽
+                  <b>Стоимость:</b>&nbsp;
+                  {discountRate > 0 ? (
+                    <>
+                      <span style={{ textDecoration: "line-through", opacity: 0.6 }}>{SCAN_PRICE} ₽</span>{" "}
+                      {scanPrice} ₽ <span style={{ fontSize: 11 }}>(скидка {Math.round(discountRate * 100)}% по промокоду)</span>
+                    </>
+                  ) : (
+                    `${SCAN_PRICE} ₽`
+                  )}
                 </span>
                 <span className="pill muted">
                   <b>Длительность:</b>&nbsp;до 2 дней
@@ -137,7 +156,7 @@ export default async function ProjectPage({
             </form>
             <p className="hint">
               Онлайн-оплата подключается — после заявки я свяжусь с вами, чтобы принять
-              990 ₽ и подготовить отчёт.
+              {" "}{scanPrice} ₽ и подготовить отчёт.
             </p>
           </>
         )}
@@ -209,7 +228,15 @@ export default async function ProjectPage({
 
               <div className="step-meta">
                 <span className="pill">
-                  <b>Стоимость:</b>&nbsp;10 000 ₽ — независимо от количества сотрудников
+                  <b>Стоимость:</b>&nbsp;
+                  {discountRate > 0 ? (
+                    <>
+                      <span style={{ textDecoration: "line-through", opacity: 0.6 }}>{INTERVIEW_PRICE.toLocaleString("ru-RU")} ₽</span>{" "}
+                      {interviewPrice.toLocaleString("ru-RU")} ₽ <span style={{ fontSize: 11 }}>(скидка {Math.round(discountRate * 100)}% по промокоду)</span> — независимо от количества сотрудников
+                    </>
+                  ) : (
+                    `${INTERVIEW_PRICE.toLocaleString("ru-RU")} ₽ — независимо от количества сотрудников`
+                  )}
                 </span>
                 <span className="pill muted">
                   <b>Длительность:</b>&nbsp;~1 неделя
