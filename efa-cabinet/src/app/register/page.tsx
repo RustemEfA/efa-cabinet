@@ -25,6 +25,9 @@ export default function RegisterPage({
         <label htmlFor="password">Пароль</label>
         <input type="password" id="password" name="password" required minLength={6} autoComplete="new-password" />
 
+        <label htmlFor="promo_code">Промокод (если есть)</label>
+        <input type="text" id="promo_code" name="promo_code" placeholder="Необязательно" />
+
         {searchParams.error ? <p className="error">{searchParams.error}</p> : null}
 
         <button className="btn" type="submit">Зарегистрироваться</button>
