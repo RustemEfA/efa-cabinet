@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { statusLabel } from "@/lib/statusLabels";
 import UploadForm from "./UploadForm";
+import { submitScanRequest } from "./actions";
 
 function formatBytes(bytes: number | null) {
   if (!bytes) return "";
@@ -27,6 +28,14 @@ export default async function ProjectPage({
     .single();
 
   if (!project) notFound();
+
+  const { data: scanRequest } = await supabase
+    .from("scan_requests")
+    .select("id, org_name, site, social, status, created_at")
+    .eq("project_id", project.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   const { data: documents } = await supabase
     .from("documents")
@@ -69,40 +78,70 @@ export default async function ProjectPage({
           <div className="step-num">1</div>
           <h2>Скан репутации</h2>
         </div>
-        <p>
-          Заполните три поля — этого достаточно, чтобы собрать отчёт о том, как ваша
-          компания выглядит со стороны: юридический профиль, сайт, отзывы на картах
-          в сравнении с конкурентами, активность в соцсетях.
-        </p>
 
-        <form>
-          <label htmlFor="scan-org">Название организации</label>
-          <input type="text" id="scan-org" name="scan-org" defaultValue={project.title} />
+        {scanRequest ? (
+          <>
+            <p>
+              Заявка получена {new Date(scanRequest.created_at).toLocaleDateString("ru-RU")}.
+              Мы свяжемся с вами, чтобы принять оплату 990 ₽ и подготовить отчёт — обычно
+              это занимает до 2 дней.
+            </p>
+            <div className="doc-row">
+              <span>Организация</span>
+              <span className="doc-meta">{scanRequest.org_name}</span>
+            </div>
+            <div className="doc-row">
+              <span>Сайт</span>
+              <span className="doc-meta">{scanRequest.site || "—"}</span>
+            </div>
+            <div className="doc-row">
+              <span>Соцсети</span>
+              <span className="doc-meta">{scanRequest.social || "—"}</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <p>
+              Заполните три поля — этого достаточно, чтобы собрать отчёт о том, как ваша
+              компания выглядит со стороны: юридический профиль, сайт, отзывы на картах
+              в сравнении с конкурентами, активность в соцсетях.
+            </p>
 
-          <label htmlFor="scan-site">Сайт организации</label>
-          <input type="text" id="scan-site" name="scan-site" placeholder="https://" />
+            <form action={submitScanRequest}>
+              <input type="hidden" name="project_id" value={project.id} />
 
-          <label htmlFor="scan-social">Соцсети</label>
-          <textarea
-            id="scan-social"
-            name="scan-social"
-            placeholder="Телеграм-канал, Instagram, ВКонтакте, YouTube — ссылки, каждая с новой строки"
-          />
+              <label htmlFor="scan-org">Название организации</label>
+              <input type="text" id="scan-org" name="scan-org" defaultValue={project.title} required />
 
-          <div className="step-meta">
-            <span className="pill">
-              <b>Стоимость:</b>&nbsp;990 ₽
-            </span>
-            <span className="pill muted">
-              <b>Длительность:</b>&nbsp;до 2 дней
-            </span>
-          </div>
+              <label htmlFor="scan-site">Сайт организации</label>
+              <input type="text" id="scan-site" name="scan-site" placeholder="https://" />
 
-          <button className="btn" type="button" disabled style={{ marginTop: 16 }}>
-            Оплатить 990 ₽
-          </button>
-        </form>
-        <p className="hint">Онлайн-оплата подключается — скоро будет доступна.</p>
+              <label htmlFor="scan-social">Соцсети</label>
+              <textarea
+                id="scan-social"
+                name="scan-social"
+                placeholder="Телеграм-канал, Instagram, ВКонтакте, YouTube — ссылки, каждая с новой строки"
+              />
+
+              <div className="step-meta">
+                <span className="pill">
+                  <b>Стоимость:</b>&nbsp;990 ₽
+                </span>
+                <span className="pill muted">
+                  <b>Длительность:</b>&nbsp;до 2 дней
+                </span>
+              </div>
+
+              <button className="btn" type="submit" style={{ marginTop: 16 }}>
+                Отправить заявку
+              </button>
+            </form>
+            <p className="hint">
+              Онлайн-оплата подключается — после заявки я свяжусь с вами, чтобы принять
+              990 ₽ и подготовить отчёт.
+            </p>
+          </>
+        )}
       </div>
 
       <h2 style={{ fontSize: 16, marginTop: 32 }}>Регламенты и исходные данные</h2>
