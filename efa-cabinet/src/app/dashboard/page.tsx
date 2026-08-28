@@ -240,7 +240,9 @@ export default async function DashboardPage() {
                   <p className="card-title">{p.title}</p>
                   <span className={`badge ${p.status}`}>{statusLabel(p.status)}</span>
                 </div>
-                <span style={{ color: "var(--muted-2)", fontSize: 13 }}>→</span>
+                <span style={{ color: "var(--teal)", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  Войти в проект <span style={{ fontSize: 18 }}>→</span>
+                </span>
               </div>
             </div>
           </Link>
