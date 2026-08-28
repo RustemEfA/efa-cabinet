@@ -227,7 +227,7 @@ export default async function DashboardPage() {
         </form>
       </div>
 
-      <p className="eyebrow" style={{ marginTop: 56 }}>Ваши проекты</p>
+      <p id="projects" className="eyebrow" style={{ marginTop: 56, scrollMarginTop: 24 }}>Ваши проекты</p>
 
       {!projects || projects.length === 0 ? (
         <p className="empty">Проектов пока нет — создайте первый выше.</p>
