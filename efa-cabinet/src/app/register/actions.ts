@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { notifyTelegram } from "@/lib/telegram";
 
 export async function signUp(formData: FormData) {
   const email = String(formData.get("email") || "");
@@ -22,6 +23,10 @@ export async function signUp(formData: FormData) {
   if (error) {
     redirect(`/register?error=${encodeURIComponent(error.message)}`);
   }
+
+  await notifyTelegram(
+    `\ud83c\udd95 Новая регистрация в EfA\nEmail: ${email}\nКомпания: ${companyName || "—"}\nИмя: ${contactName || "—"}`
+  );
 
   // Если в Supabase включено подтверждение email (по умолчанию — да),
   // сессии ещё нет: отправляем клиента на страницу "проверьте почту".
