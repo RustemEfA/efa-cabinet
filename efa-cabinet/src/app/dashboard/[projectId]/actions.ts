@@ -30,3 +30,42 @@ export async function submitScanRequest(formData: FormData) {
 
   revalidatePath(`/dashboard/${projectId}`);
 }
+
+export async function submitInterviewRequest(formData: FormData) {
+  const projectId = String(formData.get("project_id") || "");
+  const contact = String(formData.get("interview-contact") || "").trim();
+  const comment = String(formData.get("interview-comment") || "").trim();
+  const acceptedOffer = formData.get("interview-offer") === "on";
+  const rosterFile = formData.get("interview-roster") as File | null;
+
+  if (!projectId || !contact || !acceptedOffer) return;
+
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  let rosterPath = null;
+  if (rosterFile && typeof rosterFile === "object" && "size" in rosterFile && rosterFile.size > 0) {
+    const ext = (rosterFile.name || "file").split(".").pop() || "bin";
+    const path = `${projectId}/roster-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("documents").upload(path, rosterFile, {
+      contentType: rosterFile.type || undefined,
+      upsert: false,
+    });
+    if (!error) rosterPath = path;
+  }
+
+  await supabase.from("interview_requests").insert({
+    project_id: projectId,
+    owner_id: user.id,
+    contact,
+    roster_storage_path: rosterPath,
+    comment: comment || null,
+  });
+
+  await notifyTelegram(
+    `🧑‍💼 Новая заявка «Интервью сотрудников» (Шаг 2)\nКонтакт: ${contact}\nШтатное расписание: ${rosterPath ? "приложено" : "не приложено"}\nКомментарий: ${comment || "—"}`
+  );
+
+  revalidatePath(`/dashboard/${projectId}`);
+}
