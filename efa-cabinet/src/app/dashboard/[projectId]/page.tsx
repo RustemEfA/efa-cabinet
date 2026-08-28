@@ -2,15 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { statusLabel } from "@/lib/statusLabels";
-import { submitScanRequest, submitInterviewRequest } from "./actions";
+import { submitScanRequest, submitInterviewRequest, createScanPayment, createInterviewPayment } from "./actions";
 import { SCAN_PRICE, INTERVIEW_PRICE } from "@/lib/pricing";
 
 const OFERTA_URL = "/legal/Oferta_i_Specifikatsiya_1_Shag2.pdf";
 
 export default async function ProjectPage({
-  params
+  params,
+  searchParams
 }: {
   params: { projectId: string };
+  searchParams: { payment?: string };
 }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -74,6 +76,9 @@ export default async function ProjectPage({
     deliverablesWithUrls.push({ ...doc, url: data?.signedUrl || null });
   }
 
+  const scanPaid = scanRequest?.status === "paid" || scanRequest?.status === "done";
+  const interviewPaid = interviewRequest?.status === "paid" || interviewRequest?.status === "done";
+
   return (
     <>
       <p className="eyebrow"><Link href="/dashboard">← Все проекты</Link></p>
@@ -82,6 +87,13 @@ export default async function ProjectPage({
         <span className={`badge ${project.status}`}>{statusLabel(project.status)}</span>
       </div>
       <p className="lead">Создан {new Date(project.created_at).toLocaleDateString("ru-RU")}</p>
+
+      {searchParams.payment === "return" ? (
+        <p className="hint" style={{ marginTop: 8 }}>
+          Возвращаем вас из ЮKassa. Если оплата прошла, статус ниже обновится в течение
+          нескольких секунд — обновите страницу, если ещё не увидели «Оплачено».
+        </p>
+      ) : null}
 
       <div className="step-card" style={{ marginTop: 24 }}>
         <div className="step-head">
@@ -92,9 +104,10 @@ export default async function ProjectPage({
         {scanRequest ? (
           <>
             <p>
-              Заявка получена {new Date(scanRequest.created_at).toLocaleDateString("ru-RU")}.
-              Мы свяжемся с вами, чтобы принять оплату {scanPrice} ₽ и подготовить отчёт — обычно
-              это занимает до 2 дней.
+              Заявка получена {new Date(scanRequest.created_at).toLocaleDateString("ru-RU")}.{" "}
+              {scanPaid
+                ? "Оплата получена, мы готовим отчёт — обычно это занимает до 2 дней."
+                : `Оплатите онлайн ${scanPrice} ₽ — и мы сразу приступим к подготовке отчёта (обычно до 2 дней).`}
             </p>
             <div className="doc-row">
               <span>Организация</span>
@@ -108,6 +121,15 @@ export default async function ProjectPage({
               <span>Соцсети</span>
               <span className="doc-meta">{scanRequest.social || "—"}</span>
             </div>
+
+            {scanPaid ? (
+              <span className="pill" style={{ marginTop: 12 }}>✅ Оплачено</span>
+            ) : (
+              <form action={createScanPayment} style={{ marginTop: 16 }}>
+                <input type="hidden" name="project_id" value={project.id} />
+                <button className="btn" type="submit">Оплатить {scanPrice} ₽ онлайн</button>
+              </form>
+            )}
           </>
         ) : (
           <>
@@ -155,8 +177,8 @@ export default async function ProjectPage({
               </button>
             </form>
             <p className="hint">
-              Онлайн-оплата подключается — после заявки я свяжусь с вами, чтобы принять
-              {" "}{scanPrice} ₽ и подготовить отчёт.
+              После заявки здесь появится кнопка «Оплатить онлайн» — оплата картой через ЮKassa,
+              отчёт начнём готовить сразу после оплаты.
             </p>
           </>
         )}
@@ -171,10 +193,10 @@ export default async function ProjectPage({
         {interviewRequest ? (
           <>
             <p>
-              Заявка получена {new Date(interviewRequest.created_at).toLocaleDateString("ru-RU")}.
-              Мы свяжемся с вами по указанному контакту, чтобы подтвердить детали, получить
-              штатное расписание (если не приложено) и запустить интервью сотрудников —
-              обычно это занимает около недели.
+              Заявка получена {new Date(interviewRequest.created_at).toLocaleDateString("ru-RU")}.{" "}
+              {interviewPaid
+                ? "Оплата получена. Мы свяжемся с вами по указанному контакту, чтобы подтвердить детали и запустить интервью сотрудников — обычно это занимает около недели."
+                : `Оплатите онлайн ${interviewPrice.toLocaleString("ru-RU")} ₽ — и мы свяжемся с вами по указанному контакту, чтобы подтвердить детали, получить штатное расписание (если не приложено) и запустить интервью сотрудников.`}
             </p>
             <div className="doc-row">
               <span>Контакт для связи</span>
@@ -196,6 +218,15 @@ export default async function ProjectPage({
               <span>Условия</span>
               <span className="doc-meta"><a href={OFERTA_URL} target="_blank" rel="noreferrer">Оферта и спецификация (PDF)</a></span>
             </div>
+
+            {interviewPaid ? (
+              <span className="pill" style={{ marginTop: 12 }}>✅ Оплачено</span>
+            ) : (
+              <form action={createInterviewPayment} style={{ marginTop: 16 }}>
+                <input type="hidden" name="project_id" value={project.id} />
+                <button className="btn" type="submit">Оплатить {interviewPrice.toLocaleString("ru-RU")} ₽ онлайн</button>
+              </form>
+            )}
           </>
         ) : (
           <>
@@ -258,7 +289,8 @@ export default async function ProjectPage({
               </button>
             </form>
             <p className="hint">
-              После заявки я свяжусь с вами по указанному контакту, чтобы подтвердить детали и
+              После заявки здесь появится кнопка «Оплатить онлайн» — оплата картой через ЮKassa.
+              После оплаты я свяжусь с вами по указанному контакту, чтобы подтвердить детали и
               получить штатное расписание (если не приложено), и запустить интервью.
             </p>
           </>
