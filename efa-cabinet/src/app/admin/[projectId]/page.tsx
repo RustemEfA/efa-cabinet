@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { statusLabel } from "@/lib/statusLabels";
-import { adminUploadDeliverable, adminDeleteDeliverable } from "../actions";
+import { adminUploadDeliverable, adminDeleteDeliverable, adminMarkPaid } from "../actions";
+import { SCAN_PRICE, INTERVIEW_PRICE } from "@/lib/pricing";
 
 export default async function AdminProjectPage({
   params
@@ -21,11 +22,28 @@ export default async function AdminProjectPage({
 
   const { data: profile } = await admin
     .from("profiles")
-    .select("company_name, contact_name")
+    .select("company_name, contact_name, partner_id")
     .eq("id", project.owner_id)
     .maybeSingle();
 
   const { data: userResp } = await admin.auth.admin.getUserById(project.owner_id);
+
+  let discountRate = 0;
+  let partnerLabel: string | null = null;
+  if (profile?.partner_id) {
+    const { data: partner } = await admin
+      .from("partners")
+      .select("full_name, promo_code, client_discount_rate")
+      .eq("id", profile.partner_id)
+      .maybeSingle();
+    if (partner) {
+      discountRate = partner.client_discount_rate || 0;
+      partnerLabel = `${partner.full_name} (${partner.promo_code})`;
+    }
+  }
+
+  const scanDiscountedPrice = Math.round(SCAN_PRICE * (1 - discountRate));
+  const interviewDiscountedPrice = Math.round(INTERVIEW_PRICE * (1 - discountRate));
 
   const { data: scanRequest } = await admin
     .from("scan_requests")
@@ -78,6 +96,11 @@ export default async function AdminProjectPage({
         {profile?.company_name || profile?.contact_name || "Клиент"} ·{" "}
         {userResp?.user?.email || "почта неизвестна"} · создан{" "}
         {new Date(project.created_at).toLocaleDateString("ru-RU")}
+        {partnerLabel ? (
+          <>
+            {" "}· пришёл по промокоду партнёра <b>{partnerLabel}</b>
+          </>
+        ) : null}
       </p>
 
       <div className="step-card">
@@ -95,6 +118,19 @@ export default async function AdminProjectPage({
               <span>Заявка от</span>
               <span className="doc-meta">{new Date(scanRequest.created_at).toLocaleString("ru-RU")}</span>
             </div>
+            {scanRequest.status !== "paid" && scanRequest.status !== "done" ? (
+              <form action={adminMarkPaid} style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "flex-end" }}>
+                <input type="hidden" name="project_id" value={project.id} />
+                <input type="hidden" name="order_kind" value="scan" />
+                <div>
+                  <label htmlFor="scan-amount" style={{ fontSize: 12 }}>Сумма оплаты, ₽</label>
+                  <input type="number" id="scan-amount" name="amount" defaultValue={scanDiscountedPrice} step="1" min="1" style={{ width: 120 }} />
+                </div>
+                <button type="submit" className="btn secondary" style={{ marginTop: 0, padding: "6px 12px", fontSize: 12 }}>
+                  Отметить оплаченным
+                </button>
+              </form>
+            ) : null}
           </>
         ) : (
           <p className="empty">Заявки ещё нет.</p>
@@ -123,6 +159,19 @@ export default async function AdminProjectPage({
               <span>Заявка от</span>
               <span className="doc-meta">{new Date(interviewRequest.created_at).toLocaleString("ru-RU")}</span>
             </div>
+            {interviewRequest.status !== "paid" && interviewRequest.status !== "done" ? (
+              <form action={adminMarkPaid} style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "flex-end" }}>
+                <input type="hidden" name="project_id" value={project.id} />
+                <input type="hidden" name="order_kind" value="interview" />
+                <div>
+                  <label htmlFor="interview-amount" style={{ fontSize: 12 }}>Сумма оплаты, ₽</label>
+                  <input type="number" id="interview-amount" name="amount" defaultValue={interviewDiscountedPrice} step="1" min="1" style={{ width: 120 }} />
+                </div>
+                <button type="submit" className="btn secondary" style={{ marginTop: 0, padding: "6px 12px", fontSize: 12 }}>
+                  Отметить оплаченным
+                </button>
+              </form>
+            ) : null}
           </>
         ) : (
           <p className="empty">Заявки ещё нет.</p>
