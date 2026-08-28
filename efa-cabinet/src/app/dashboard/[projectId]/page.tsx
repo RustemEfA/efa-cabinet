@@ -125,6 +125,10 @@ export default async function ProjectPage({
         )}
       </div>
 
+      <p className="hint">
+        Не хотите ждать отчёт? <Link href="/dashboard#step-2" style={{ color: "var(--teal)" }}>Перейти к Шагу №2 — Интервью сотрудников →</Link>
+      </p>
+
       <h2 style={{ fontSize: 16, marginTop: 32 }}>Результат</h2>
       {deliverablesWithUrls.length === 0 ? (
         <p className="empty">
