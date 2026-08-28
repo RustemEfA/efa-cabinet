@@ -108,7 +108,7 @@ export default async function DashboardPage() {
       <p className="roadmap-title">Дорожная карта</p>
       <Roadmap active={2} />
 
-      <div className="step-card">
+      <div className="step-card" id="step-2" style={{ scrollMarginTop: 24 }}>
         <div className="step-head">
           <div className="step-num">2</div>
           <h2>Проведение интервью</h2>
