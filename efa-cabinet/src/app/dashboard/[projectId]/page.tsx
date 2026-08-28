@@ -64,6 +64,47 @@ export default async function ProjectPage({
       </div>
       <p className="lead">Создан {new Date(project.created_at).toLocaleDateString("ru-RU")}</p>
 
+      <div className="step-card" style={{ marginTop: 24 }}>
+        <div className="step-head">
+          <div className="step-num">1</div>
+          <h2>Скан репутации</h2>
+        </div>
+        <p>
+          Заполните три поля — этого достаточно, чтобы собрать отчёт о том, как ваша
+          компания выглядит со стороны: юридический профиль, сайт, отзывы на картах
+          в сравнении с конкурентами, активность в соцсетях.
+        </p>
+
+        <form>
+          <label htmlFor="scan-org">Название организации</label>
+          <input type="text" id="scan-org" name="scan-org" defaultValue={project.title} />
+
+          <label htmlFor="scan-site">Сайт организации</label>
+          <input type="text" id="scan-site" name="scan-site" placeholder="https://" />
+
+          <label htmlFor="scan-social">Соцсети</label>
+          <textarea
+            id="scan-social"
+            name="scan-social"
+            placeholder="Телеграм-канал, Instagram, ВКонтакте, YouTube — ссылки, каждая с новой строки"
+          />
+
+          <div className="step-meta">
+            <span className="pill">
+              <b>Стоимость:</b>&nbsp;990 ₽
+            </span>
+            <span className="pill muted">
+              <b>Длительность:</b>&nbsp;до 2 дней
+            </span>
+          </div>
+
+          <button className="btn" type="button" disabled style={{ marginTop: 16 }}>
+            Оплатить 990 ₽
+          </button>
+        </form>
+        <p className="hint">Онлайн-оплата подключается — скоро будет доступна.</p>
+      </div>
+
       <h2 style={{ fontSize: 16, marginTop: 32 }}>Регламенты и исходные данные</h2>
       <p className="lead" style={{ marginBottom: 12 }}>
         Загрузите то, что у вас уже есть: штатное расписание, должностные инструкции, регламенты процессов.
