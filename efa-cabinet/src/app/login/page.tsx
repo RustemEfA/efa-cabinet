@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signIn } from "./actions";
+import { SubmitButton } from "./submit-button";
 
 export default function LoginPage({
   searchParams
@@ -22,7 +23,7 @@ export default function LoginPage({
 
         {searchParams.error ? <p className="error">{searchParams.error}</p> : null}
 
-        <button className="btn" type="submit">Войти</button>
+        <SubmitButton>Войти</SubmitButton>
       </form>
 
       <p className="hint">
