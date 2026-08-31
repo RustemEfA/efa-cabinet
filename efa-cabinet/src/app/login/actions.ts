@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const AUTH_TIMEOUT_MS = 8000;
 
-function translateAuthError(message) {
+function translateAuthError(message: string): string {
   if (message.includes("Invalid login credentials")) {
     return "Неверный email или пароль";
   }
@@ -15,18 +15,18 @@ function translateAuthError(message) {
   return message;
 }
 
-export async function signIn(formData) {
+export async function signIn(formData: FormData) {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
   const next = String(formData.get("next") || "/dashboard");
 
   const supabase = createClient();
 
-  let result;
+  let result: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>;
   try {
     result = await Promise.race([
       supabase.auth.signInWithPassword({ email, password }),
-      new Promise((_, reject) =>
+      new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("TIMEOUT")), AUTH_TIMEOUT_MS)
       )
     ]);
