@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (timedOut) {
-    const redirectUrl = new URL("/login", request.url);
+        const redirectUrl = new URL("/login", process.env.NEXT_PUBLIC_SITE_URL ?? "https://app.ef-a.ru");
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
     redirectUrl.searchParams.set(
       "error",
@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!user) {
-    const redirectUrl = new URL("/login", request.url);
+        const redirectUrl = new URL("/login", process.env.NEXT_PUBLIC_SITE_URL ?? "https://app.ef-a.ru");
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
