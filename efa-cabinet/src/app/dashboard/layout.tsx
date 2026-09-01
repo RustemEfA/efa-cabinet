@@ -6,11 +6,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
   const showAdminLink = isAdminEmail(user?.email);
 
+  let showPartnerLink = false;
+  if (user) {
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+    showPartnerLink = Boolean(partner);
+  }
+
   return (
     <>
       <div className="topbar">
         <div className="brand">EfA<span>.</span> Личный кабинет</div>
         <div style={{ display: "flex", gap: 12 }}>
+          {showPartnerLink ? (
+            <a href="/partner" className="btn secondary" style={{ marginTop: 0 }}>
+              Кабинет партнёра
+            </a>
+          ) : null}
           {showAdminLink ? (
             <a href="/admin" className="btn secondary" style={{ marginTop: 0 }}>
               Админ
