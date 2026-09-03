@@ -180,10 +180,10 @@ export default async function DashboardPage() {
         </p>
         <div className="step-meta">
           <span className="pill">
-            <b>Стоимость «как есть»:</b>&nbsp;300 000 ₽
+            <b>Стоимость «как есть»:</b>&nbsp;Индивидуально
           </span>
           <span className="pill">
-            <b>Стоимость «как должно быть»:</b>&nbsp;300 000 ₽
+            <b>Стоимость «как должно быть»:</b>&nbsp;Индивидуально
           </span>
           <span className="pill muted">
             <b>Длительность:</b>&nbsp;1–2 недели
