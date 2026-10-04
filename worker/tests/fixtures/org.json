@@ -1,0 +1,264 @@
+{
+ "ceo": "Генеральный директор",
+ "directors": [
+  {
+   "title": "Директор по производству",
+   "reports_to": "Генеральный директор"
+  },
+  {
+   "title": "Коммерческий директор",
+   "reports_to": "Генеральный директор"
+  },
+  {
+   "title": "Финансовый директор",
+   "reports_to": "Генеральный директор"
+  },
+  {
+   "title": "Директор по персоналу",
+   "reports_to": "Генеральный директор"
+  },
+  {
+   "title": "Директор по ИТ",
+   "reports_to": "Генеральный директор"
+  },
+  {
+   "title": "Директор по снабжению",
+   "reports_to": "Генеральный директор"
+  }
+ ],
+ "departments": [
+  {
+   "id": "production",
+   "name": "Производство",
+   "head": "Начальник производства",
+   "reports_to": "Директор по производству",
+   "positions": [
+    {
+     "title": "Мастер цеха",
+     "count": 3,
+     "assumption": true
+    },
+    {
+     "title": "Оператор станка",
+     "count": 71,
+     "assumption": true
+    },
+    {
+     "title": "Слесарь‑сборщик",
+     "count": 27,
+     "assumption": true
+    },
+    {
+     "title": "Наладчик оборудования",
+     "count": 11,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "quality_control",
+   "name": "Отдел технического контроля (ОТК)",
+   "head": "Начальник ОТК",
+   "reports_to": "Директор по производству",
+   "positions": [
+    {
+     "title": "Инженер по качеству",
+     "count": 5,
+     "assumption": true
+    },
+    {
+     "title": "Контролёр ОТК",
+     "count": 9,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "sales",
+   "name": "Отдел продаж",
+   "head": "Начальник отдела продаж",
+   "reports_to": "Коммерческий директор",
+   "positions": [
+    {
+     "title": "Менеджер по продажам",
+     "count": 16,
+     "assumption": true
+    },
+    {
+     "title": "Специалист по работе с ключевыми клиентами",
+     "count": 5,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "service_team",
+   "name": "Сервисная служба",
+   "head": "Руководитель сервисной службы",
+   "reports_to": "Коммерческий директор",
+   "positions": [
+    {
+     "title": "Инженер по сервисному обслуживанию",
+     "count": 13,
+     "assumption": true
+    },
+    {
+     "title": "Выездной техник",
+     "count": 16,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "procurement",
+   "name": "Отдел снабжения",
+   "head": "Начальник отдела снабжения",
+   "reports_to": "Директор по снабжению",
+   "positions": [
+    {
+     "title": "Менеджер по закупкам",
+     "count": 7,
+     "assumption": true
+    },
+    {
+     "title": "Специалист по логистике",
+     "count": 4,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "warehouse",
+   "name": "Склад",
+   "head": "Заведующий складом",
+   "reports_to": "Директор по снабжению",
+   "positions": [
+    {
+     "title": "Кладовщик",
+     "count": 9,
+     "assumption": true
+    },
+    {
+     "title": "Грузчик",
+     "count": 7,
+     "assumption": true
+    },
+    {
+     "title": "Оператор складской техники",
+     "count": 4,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "finance",
+   "name": "Финансовый отдел и бухгалтерия",
+   "head": "Главный бухгалтер",
+   "reports_to": "Финансовый директор",
+   "positions": [
+    {
+     "title": "Бухгалтер",
+     "count": 8,
+     "assumption": true
+    },
+    {
+     "title": "Финансовый аналитик",
+     "count": 3,
+     "assumption": true
+    },
+    {
+     "title": "Специалист по расчёту заработной платы",
+     "count": 2,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "hr",
+   "name": "Отдел персонала",
+   "head": "Начальник отдела персонала",
+   "reports_to": "Директор по персоналу",
+   "positions": [
+    {
+     "title": "Менеджер по подбору персонала",
+     "count": 3,
+     "assumption": true
+    },
+    {
+     "title": "Специалист по обучению и развитию персонала",
+     "count": 2,
+     "assumption": true
+    },
+    {
+     "title": "Кадровик",
+     "count": 3,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "it",
+   "name": "ИТ‑отдел",
+   "head": "Начальник ИТ‑отдела",
+   "reports_to": "Директор по ИТ",
+   "positions": [
+    {
+     "title": "Системный администратор",
+     "count": 3,
+     "assumption": true
+    },
+    {
+     "title": "Программист (поддержка 1С и CRM)",
+     "count": 2,
+     "assumption": true
+    },
+    {
+     "title": "Специалист технической поддержки",
+     "count": 3,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "legal",
+   "name": "Юридический отдел",
+   "head": "Начальник юридического отдела",
+   "reports_to": "Генеральный директор",
+   "positions": [
+    {
+     "title": "Юрист",
+     "count": 3,
+     "assumption": true
+    },
+    {
+     "title": "Помощник юриста",
+     "count": 2,
+     "assumption": true
+    }
+   ]
+  },
+  {
+   "id": "admin",
+   "name": "Административно‑хозяйственный отдел",
+   "head": "Начальник административно‑хозяйственного отдела",
+   "reports_to": "Генеральный директор",
+   "positions": [
+    {
+     "title": "Администратор",
+     "count": 2,
+     "assumption": true
+    },
+    {
+     "title": "Уборщик",
+     "count": 4,
+     "assumption": true
+    },
+    {
+     "title": "Техник по обслуживанию зданий",
+     "count": 3,
+     "assumption": true
+    }
+   ]
+  }
+ ]
+}
